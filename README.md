@@ -1,3 +1,5 @@
+Web Link: https://zhanghengee.github.io/WebSerialTool/
+
 # 网页版串口助手（纯前端升级版）
 
 这是一个 **纯前端** 的网页版串口助手，基于 **Web Serial API**，不需要 Python 后端，也不需要数据库，适合本机串口调试与协议解析测试。
