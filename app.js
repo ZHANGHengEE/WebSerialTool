@@ -456,9 +456,18 @@ async function sendData() {
 }
 
 function clearLog() {
+  // 清日志
   rawLogLines = [];
   els.log.innerHTML = '';
-  appendLog('sys', '日志已清空');
+
+  //   清计数 
+  rxBytes = 0;
+  txBytes = 0;
+
+  // 更新显示
+  updateStats();
+
+  appendLog('sys', '日志和计数已清空');
 }
 
 function downloadLog() {
