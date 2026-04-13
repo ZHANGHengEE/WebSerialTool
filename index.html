@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>网页版串口助手</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>网页版串口助手</h1>
+        <p>纯前端 · Web Serial API · 本地测试版</p>
+      </div>
+
+      <section class="side-card">
+        <div class="side-title">状态</div>
+        <div class="status-stack">
+          <span id="supportBadge" class="badge">检测中...</span>
+          <span id="connBadge" class="badge badge-off">未连接</span>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <div class="side-title">连接设置</div>
+        <div class="btn-grid"><button id="connectBtn" class="btn primary">连接串口</button><button id="disconnectBtn" class="btn">断开</button><button id="reconnectBtn" class="btn">重连</button></div><div class="form-grid one-col">
+          <label>
+            波特率
+            <div class="baud-row">
+              <select id="baudRate">
+                <option>9600</option>
+                <option>19200</option>
+                <option>38400</option>
+                <option selected>115200</option>
+                <option>230400</option>
+                <option>460800</option>
+                <option>921600</option>
+                <option>1000000</option>
+                <option>1500000</option>
+                <option>2000000</option>
+              </select>
+              <input id="customBaud" type="number" min="1" step="1" placeholder="任意数值" />
+            </div>
+          </label>
+
+          <label>
+            数据位
+            <select id="dataBits">
+              <option>7</option>
+              <option selected>8</option>
+            </select>
+          </label>
+
+          <label>
+            停止位
+            <select id="stopBits">
+              <option selected>1</option>
+              <option>2</option>
+            </select>
+          </label>
+
+          <label>
+            校验位
+            <select id="parity">
+              <option value="none" selected>none</option>
+              <option value="even">even</option>
+              <option value="odd">odd</option>
+            </select>
+          </label>
+
+          <label>
+            流控
+            <select id="flowControl">
+              <option value="none" selected>none</option>
+              <option value="hardware">hardware</option>
+            </select>
+          </label>
+
+          <label>
+            发送换行
+            <select id="lineEnding">
+              <option value="" selected>无</option>
+              <option value="\n">LF (\n)</option>
+              <option value="\r">CR (\r)</option>
+              <option value="\r\n">CRLF (\r\n)</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <div class="side-title">解析面板</div>
+        <label class="check"><input id="parserEnabled" checked type="checkbox"  /> 启用GPS解析</label>
+        <label class="check"><input id="showParserPanel" checked type="checkbox"  /> 显示解析子界面</label>
+        <div class="parser-note">
+          支持 <b>GPRMC / GNRMC / BDRMC</b><br />
+          自动提取时间、日期、经纬度、速度、航向与定位状态。
+        </div>
+      </section>
+    </aside>
+
+    <main class="main">
+      <section class="panel log-panel">
+        <div class="panel-head">
+          <div class="panel-title-row">
+            <span class="panel-title">接收区</span>
+            <label class="inline-check"><input id="hexReceive" type="checkbox" /> Hex接收</label>
+            <label class="inline-check"><input id="showTimestamp" type="checkbox" checked /> 时间戳</label>
+            <label class="inline-check"><input id="autoScroll" type="checkbox" checked /> 自动滚动</label>
+            <button id="downloadLogBtn" class="mini-btn">导出日志</button>
+            <button id="clearLogBtn" class="mini-btn danger">清空日志</button>
+          </div>
+          <div id="stats" class="stats">RX 0 B · TX 0 B</div>
+        </div>
+        <pre id="log" class="log-view" aria-label="串口日志"></pre>
+      </section>
+
+      <section class="panel send-panel">
+        <div class="panel-head">
+          <div class="panel-title-row">
+            <span class="panel-title">发送区</span>
+            <label class="inline-check"><input id="hexSend" type="checkbox" /> Hex发送</label>
+          </div>
+        </div>
+        <div class="send-wrap">
+          <textarea id="sendInput" placeholder="输入要发送的内容；若勾选 Hex发送，可输入：AA 55 01 02 0D 0A"></textarea>
+          <div class="send-actions">
+            <button id="sendBtn" class="btn primary">发送</button>
+            <button id="sendClearBtn" class="btn">清空</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="parserPanel" class="panel parser-panel">
+        <div class="panel-head">
+          <div class="panel-title-row">
+            <span class="panel-title">GPS解析子界面</span>
+            <span class="parser-chip">RMC</span>
+          </div>
+          <div id="parserStatus" class="parser-status">等待有效的 GPRMC / GNRMC / BDRMC 数据...</div>
+        </div>
+
+        <div class="parser-grid">
+          <div class="parser-card">
+            <div class="kv"><span>语句类型</span><strong id="gpsType">--</strong></div>
+            <div class="kv"><span>UTC时间</span><strong id="gpsTime">--</strong></div>
+            <div class="kv"><span>日期</span><strong id="gpsDate">--</strong></div>
+            <div class="kv"><span>状态</span><strong id="gpsStatus">--</strong></div>
+            <div class="kv"><span>磁偏模式</span><strong id="gpsMode">--</strong></div>
+          </div>
+
+          <div class="parser-card">
+            <div class="kv"><span>纬度</span><strong id="gpsLat">--</strong></div>
+            <div class="kv"><span>经度</span><strong id="gpsLon">--</strong></div>
+            <div class="kv"><span>十进制度</span><strong id="gpsDecimal">--</strong></div>
+          </div>
+
+          <div class="parser-card">
+            <div class="kv"><span>速度 (knots)</span><strong id="gpsSpeedKnots">--</strong></div>
+            <div class="kv"><span>速度 (km/h)</span><strong id="gpsSpeedKmh">--</strong></div>
+            <div class="kv"><span>航向</span><strong id="gpsCourse">--</strong></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-title">最近解析记录</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>类型</th>
+                  <th>UTC时间</th>
+                  <th>日期</th>
+                  <th>状态</th>
+                  <th>纬度</th>
+                  <th>经度</th>
+                  <th>km/h</th>
+                </tr>
+              </thead>
+              <tbody id="parserTableBody">
+                <tr><td colspan="7" class="empty-row">暂无解析结果</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+<div id="map" style="height:300px;margin-top:10px;"></div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+</section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
