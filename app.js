@@ -510,6 +510,8 @@ setTimeout(()=>{
   if(document.getElementById("map")){
     map = L.map('map').setView([0,0],2);
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png').addTo(map);
+    // 加比例尺（默认左下角）
+    L.control.scale().addTo(map);
   }
 },1000);
 
